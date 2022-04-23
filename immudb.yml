@@ -1,0 +1,130 @@
+barcharts:
+  - title: DB size MB
+    position: [[0, 8], [14, 16]]
+    items:
+      - label: DefaultDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_db_size_bytes.*defaultdb.*/
+            {byte =$2 /1024/1024; print byte }'
+      - label: SystemDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_db_size_bytes.*systemdb.*/
+            {byte =$2 /1024/1024; print byte }'
+  - title: Stored entries
+    position: [[14, 8], [14, 16]]
+    items:
+      - label: DefaultDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_number_of_stored_entries.*defaultdb.*/
+            {print $2}'
+      - label: SystemDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_number_of_stored_entries.*systemdb.*/
+            {print $2}'
+  - title: Last committed Tx ID
+    position: [[0, 24], [14, 16]]
+    items:
+      - label: DefaultDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_last_committed_trx_id.*defaultdb.*/
+            {print $2}'
+      - label: SystemDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_last_committed_trx_id.*systemdb.*/
+            {print $2}'
+  - title: Last indexed Tx ID
+    position: [[14, 24], [14, 16]]
+    items:
+      - label: DefaultDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_last_indexed_trx_id.*defaultdb.*/
+            {print $2}'
+      - label: SystemDB
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_last_indexed_trx_id.*systemdb.*/
+            {print $2}'
+gauges:
+  - title: btree cache hit (defaultdb)
+    position: [[28, 14], [19, 0]]
+    rate-ms: 500
+    scale: 1
+    color: 178
+    percent-only: false
+    cur:
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_btree_cache_hit.*defaultdb.*/
+            {print $2}'
+    max:
+        sample: echo 500
+    min:
+        sample: echo 0
+  - title: btree cache miss (defaultdb
+    position: [[28, 12], [19, 2]]
+    cur:
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_btree_cache_miss.*defaultdb.*/
+            {print $2}'
+    max:
+        sample: echo 500
+    min:
+        sample: echo 0
+  - title: btree cache size (defaultdb
+    position: [[28, 16], [19, 2]]
+    cur:
+        sample: curl localhost:9497/metrics -s | awk '/^immudb_btree_cache_size.*defaultdb.*/
+            {print $2}'
+    max:
+        sample: echo 500
+    min:
+        sample: echo 0
+  - title: open files (hard limit)
+    position: [[28, 18], [19, 3]]
+    cur:
+        sample: lsof | wc -l
+    max:
+        sample: ulimit -Hn
+    min:
+        sample: echo 0
+  - title: open files (soft limit)
+    position: [[28, 21], [19, 3]]
+    cur:
+        sample: lsof | wc -l
+    max:
+        sample: ulimit -Sn
+    min:
+        sample: echo 0
+sparklines:
+  - title: immudb CPU usage %
+    position: [[48, 16], [32, 4]]
+    rate-ms: 200
+    scale: 0
+    sample: ps -C immudb -o %cpu |  awk '/[0-9].*/ {print $1}'
+  - title: immudb Mem usage %
+    position: [[48, 12], [32, 4]]
+    rate-ms: 200
+    scale: 0
+    sample: ps -C immudb -o %mem |  awk '/[0-9].*/ {print $1}'
+  - title: CPU usage %
+    position: [[0, 0], [37, 8]]
+    rate-ms: 200
+    scale: 0
+    sample: ps -A -o %cpu | awk '{s+=$1} END {print s}'
+  - title: Free memory in mb
+    position: [[38, 0], [32, 8]]
+    rate-ms: 200
+    scale: 0
+    sample: cat /proc/meminfo | awk '/^MemFree/ {kbyte =$2 /1024; print kbyte}'
+variables:
+    immudb_connection: immuclient login immudb --password immudb &>/dev/null
+textboxes:
+  - title: immudb (get current tx)
+    position: [[28, 8], [52, 4]]
+    rate-ms: 5000
+    sample: immuclient current
+  - title: vmstat
+    position: [[28, 33], [52, 7]]
+    rate-ms: 500
+    sample: vmstat -w
+  - title: Docker containers stats (immudb)
+    position: [[28, 25], [52, 8]]
+    rate-ms: 500
+    sample: docker stats --no-stream --format "table {{.Name}}\t{{.CPUPerc}}\t{{.MemUsage}}\t{{.PIDs}}"
+        | grep immudb
+  - title: immudb uptime (h)
+    position: [[71, 3], [10, 3]]
+    rate-ms: 500
+    sample: curl localhost:9497/metrics -s | awk '/^immudb_uptime_hours/ {printf "%.2f\n",$2}'
+  - title: immudb pid
+    position: [[71, 0], [10, 3]]
+    rate-ms: 5000
+    sample: ps -C immudb -o pid |  awk '/[0-9].*/ {print $1}'
